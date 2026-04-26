@@ -57,11 +57,9 @@ function dpr() {
   return window.devicePixelRatio || 1
 }
 
-export interface SelectionBox {
-  x: number
-  y: number
-  width: number
-  height: number
+export interface DrawOptions {
+  showVertexNames?: boolean
+  showEdgeWeights?: boolean
 }
 
 export function draw(
@@ -71,10 +69,7 @@ export function draw(
   zoom: number,
   graph: Graph,
   selection: Selection,
-  pendingEdgeFrom?: Vertex,
-  pendingEdgeToX?: number,
-  pendingEdgeToY?: number,
-  selectionBox?: SelectionBox,
+  drawOptions: DrawOptions = {},
 ) {
   const ctx = canvas.getContext('2d')!
   const W = canvas.width
@@ -91,18 +86,10 @@ export function draw(
   ctx.scale(zoom, zoom)
 
   drawEdges(ctx, graph, selection, zoom)
-  drawEdgeLabels(ctx, graph, selection, zoom)
-  if (
-    pendingEdgeFrom !== undefined &&
-    pendingEdgeToX !== undefined &&
-    pendingEdgeToY !== undefined
-  ) {
-    drawPendingEdge(ctx, graph, pendingEdgeFrom, pendingEdgeToX, pendingEdgeToY, zoom)
+  if (drawOptions.showEdgeWeights) {
+    drawEdgeLabels(ctx, graph, selection, zoom)
   }
-  drawVertices(ctx, graph, selection, zoom)
-  if (selectionBox) {
-    drawSelectionBox(ctx, selectionBox, zoom)
-  }
+  drawVertices(ctx, graph, selection, zoom, drawOptions.showVertexNames)
 
   ctx.restore()
 }
@@ -148,6 +135,7 @@ export function drawVertices(
   graph: Graph,
   selection: Selection,
   zoom: number,
+  showNames = true,
 ) {
   const radius = NODE_RADIUS / zoom
   const stroke = NODE_STROKE / zoom
@@ -164,8 +152,10 @@ export function drawVertices(
     ctx.strokeStyle = selected ? colors.vertexSelected : colors.vertexStroke
     ctx.lineWidth = stroke
     ctx.stroke()
-    ctx.fillStyle = colors.graphText
-    ctx.fillText(String(v.name), v.x, v.y)
+    if (showNames) {
+      ctx.fillStyle = colors.graphText
+      ctx.fillText(String(v.name), v.x, v.y)
+    }
   }
 }
 
@@ -203,14 +193,6 @@ export function drawPendingEdge(
   ctx.setLineDash([EDGE_PENDING_DASH / zoom, EDGE_PENDING_DASH / zoom])
   ctx.stroke()
   ctx.setLineDash([])
-}
-
-export function drawSelectionBox(ctx: CanvasRenderingContext2D, box: SelectionBox, zoom: number) {
-  ctx.fillStyle = colors.selectionBox
-  ctx.strokeStyle = colors.vertexSelected
-  ctx.lineWidth = 1 / zoom
-  ctx.fillRect(box.x, box.y, box.width, box.height)
-  ctx.strokeRect(box.x, box.y, box.width, box.height)
 }
 
 export function drawEdgeLabels(

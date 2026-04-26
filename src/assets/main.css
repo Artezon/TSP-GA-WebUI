@@ -12,6 +12,10 @@
   --graph-text: #000;
   --selection: rgba(77, 171, 247, 0.3);
   --selection-box: rgba(77, 171, 247, 0.15);
+  --text: #2c2c2c;
+  --red-btn: #f9bfbf;
+  --green-btn: #bff9cd;
+  --blue-btn: #3b8fd6;
 
   --font-family:
     -apple-system, BlinkMacSystemFont, 'Adwaita Sans', 'Inter Variable', 'Segoe UI', Roboto, Oxygen,
@@ -43,8 +47,14 @@ body {
 }
 
 #app {
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
+}
+
+code {
+  font-family: monospace;
+  border-radius: 6px;
+  background: var(--canvas-bg);
+  padding: 3px 5px;
+  line-height: 1.6;
 }
