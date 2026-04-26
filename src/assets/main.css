@@ -1,7 +1,21 @@
 :root {
-  --bg: #f0ede8;
+  --canvas-bg: #f0ede8;
   --grid: #e4e0da;
   --grid-large: #d8d4ce;
+  --header-bg: #fafaf8;
+  --vertex: #fff;
+  --vertex-stroke: #2c2c2c;
+  --vertex-selected: #4dabf7;
+  --edge: #2c2c2c;
+  --edge-selected: #4dabf7;
+  --edge-pending: #868686;
+  --graph-text: #000;
+  --selection: rgba(77, 171, 247, 0.3);
+  --selection-box: rgba(77, 171, 247, 0.15);
+
+  --font-family:
+    -apple-system, BlinkMacSystemFont, 'Adwaita Sans', 'Inter Variable', 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
 }
 
 *,
@@ -10,6 +24,7 @@
   box-sizing: border-box;
   margin: 0;
   font-weight: normal;
+  font-family: var(--font-family);
 }
 
 html,
@@ -20,10 +35,7 @@ body {
 
 body {
   color: var(--text);
-  background: var(--bg);
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Adwaita Sans', 'Inter Variable', 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  background: var(--canvas-bg);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
