@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { generateRandomGraph, type GenerateOptions } from '../utils/randomGraph'
+import Modal from './Modal.vue'
 
 const emit = defineEmits<{
   loadGraph: []
@@ -74,33 +75,28 @@ function handleGenerate() {
     </div>
   </aside>
 
-  <Teleport to="body">
-    <div v-if="showGenerateModal" class="modal-overlay" @click.self="showGenerateModal = false">
-      <div class="modal">
-        <h3>Сгенерировать случайный граф</h3>
-        <div class="modal-field">
-          <label>Число вершин:</label>
-          <input type="number" v-model="vertexCount" min="2" max="100" />
-        </div>
-        <div class="modal-field">
-          <label>Плотность графа: {{ density }}%</label>
-          <input type="range" v-model="density" min="0" max="100" />
-        </div>
-        <div class="modal-field">
-          <label>Минимальная длина ребра:</label>
-          <input type="number" v-model="minEdgeLength" min="0" :max="graphSize" />
-        </div>
-        <div class="modal-field">
-          <label>Размер графа:</label>
-          <input type="number" v-model="graphSize" min="100" max="10000" step="100" />
-        </div>
-        <div class="modal-buttons">
-          <button @click="showGenerateModal = false">Отмена</button>
-          <button class="primary-btn" @click="handleGenerate">Создать граф</button>
-        </div>
-      </div>
+  <Modal v-model="showGenerateModal" title="Сгенерировать случайный граф">
+    <div class="modal-field">
+      <label>Число вершин:</label>
+      <input type="number" v-model="vertexCount" min="2" max="100" />
     </div>
-  </Teleport>
+    <div class="modal-field">
+      <label>Плотность графа: {{ density }}%</label>
+      <input type="range" v-model="density" min="0" max="100" />
+    </div>
+    <div class="modal-field">
+      <label>Минимальная длина ребра:</label>
+      <input type="number" v-model="minEdgeLength" min="0" :max="graphSize" />
+    </div>
+    <div class="modal-field">
+      <label>Размер графа:</label>
+      <input type="number" v-model="graphSize" min="100" max="10000" step="100" />
+    </div>
+    <template #footer>
+      <button @click="showGenerateModal = false">Отмена</button>
+      <button class="primary-btn" @click="handleGenerate">Создать граф</button>
+    </template>
+  </Modal>
 </template>
 
 <style scoped>
@@ -201,33 +197,6 @@ function handleGenerate() {
   accent-color: var(--vertex-selected);
 }
 
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-}
-
-.modal {
-  background: var(--header-bg);
-  border-radius: 12px;
-  padding: 20px;
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-}
-
-.modal h3 {
-  margin: 0;
-  font-size: 16px;
-}
-
 .modal-field {
   display: flex;
   flex-direction: column;
@@ -244,34 +213,6 @@ function handleGenerate() {
 
 .modal-field input[type='range'] {
   width: 100%;
-}
-
-.modal-buttons {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.modal-buttons button {
-  padding: 8px 16px;
-  border: 1px solid var(--grid-large);
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-}
-
-.modal-buttons button:hover {
-  background: var(--grid);
-}
-
-.modal-buttons .primary-btn {
-  background: var(--vertex-selected);
-  border-color: var(--vertex-selected);
-  color: white;
-}
-
-.modal-buttons .primary-btn:hover {
-  background: var(--blue-btn);
 }
 
 .lucky-btn:hover {
