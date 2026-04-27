@@ -18,6 +18,9 @@ const errorMessage = ref<string | null>(null)
 const showVertexNames = ref(true)
 const showEdgeWeights = ref(true)
 
+const vertexCount = computed(() => graphData.value?.vertices?.length ?? 0)
+const edgeCount = computed(() => graphData.value?.edges?.length ?? 0)
+
 function parseEdgeList(): GraphData | null {
   if (!edgeListText.value.trim()) return null
   const lines = edgeListText.value.split('\n')
@@ -49,7 +52,11 @@ function parseEdgeList(): GraphData | null {
 }
 
 const graphData = computed<GraphData | null>(() => {
-  return parseEdgeList()
+  try {
+    return parseEdgeList()
+  } catch {
+    return null
+  }
 })
 
 function loadGraph() {
@@ -163,6 +170,8 @@ watch(edgeListText, () => {
       @generate="handleGenerate"
       v-model:showVertexNames="showVertexNames"
       v-model:showEdgeWeights="showEdgeWeights"
+      :vertexCount="vertexCount"
+      :edgeCount="edgeCount"
     >
       <template #edgeList>
         <textarea v-model="edgeListText" class="edge-list-input"></textarea>

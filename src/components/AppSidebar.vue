@@ -17,6 +17,8 @@ const graphSize = ref(500)
 
 const showVertexNames = defineModel<boolean>('showVertexNames', { default: true })
 const showEdgeWeights = defineModel<boolean>('showEdgeWeights', { default: true })
+const vertexCountProp = defineModel<number>('vertexCount', { default: 0 })
+const edgeCountProp = defineModel<number>('edgeCount', { default: 0 })
 
 function handleGenerate() {
   const options: GenerateOptions = {
@@ -48,6 +50,16 @@ function handleGenerate() {
         <code>вершина1 вершина2 вес</code>
       </label>
       <slot name="edgeList"></slot>
+    </div>
+
+    <div class="graph-stats">
+      <span class="stat"
+        >Вершин: <strong>{{ vertexCountProp }}</strong></span
+      >
+      <span class="divider"></span>
+      <span class="stat"
+        >Рёбер: <strong>{{ edgeCountProp }}</strong></span
+      >
     </div>
 
     <div class="display-toggles">
@@ -92,6 +104,11 @@ function handleGenerate() {
 </template>
 
 <style scoped>
+* {
+  font-size: 13px;
+  color: var(--text);
+}
+
 .sidebar {
   width: 260px;
   background: var(--header-bg);
@@ -118,8 +135,6 @@ function handleGenerate() {
   border-radius: 6px;
   background: transparent;
   cursor: pointer;
-  font-size: 13px;
-  color: var(--text);
   transition: background 0.15s;
 }
 
@@ -135,10 +150,33 @@ function handleGenerate() {
 }
 
 .edge-list-label {
-  font-size: 13px;
-  color: var(--text);
   margin-bottom: 6px;
   text-align: center;
+}
+
+.graph-stats {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--canvas-bg);
+  border: 1px solid var(--grid-large);
+}
+
+.graph-stats .stat {
+  flex: 1;
+  text-align: center;
+  padding: 8px 12px;
+}
+
+.graph-stats .stat strong {
+  font-weight: 600;
+}
+
+.graph-stats .divider {
+  width: 1px;
+  height: 100%;
+  background: var(--grid-large);
 }
 
 .display-toggles {
@@ -153,8 +191,6 @@ function handleGenerate() {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  color: var(--text);
   cursor: pointer;
 }
 
@@ -190,7 +226,6 @@ function handleGenerate() {
 .modal h3 {
   margin: 0;
   font-size: 16px;
-  color: var(--text);
 }
 
 .modal-field {
@@ -199,18 +234,12 @@ function handleGenerate() {
   gap: 6px;
 }
 
-.modal-field label {
-  font-size: 13px;
-  color: var(--text);
-}
-
 .modal-field input[type='number'] {
   padding: 8px;
   border: 1px solid var(--grid-large);
   border-radius: 6px;
   font-size: 14px;
   background: var(--canvas-bg);
-  color: var(--text);
 }
 
 .modal-field input[type='range'] {
@@ -229,8 +258,6 @@ function handleGenerate() {
   border-radius: 6px;
   background: transparent;
   cursor: pointer;
-  font-size: 13px;
-  color: var(--text);
 }
 
 .modal-buttons button:hover {
