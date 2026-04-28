@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { generateRandomGraph, type GenerateOptions } from '../utils/randomGraph'
-import Modal from './Modal.vue'
+import Modal from './BaseModal.vue'
 
 const emit = defineEmits<{
   loadGraph: []

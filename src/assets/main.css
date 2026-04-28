@@ -16,6 +16,8 @@
   --red-btn: #f9bfbf;
   --green-btn: #bff9cd;
   --blue-btn: #3b8fd6;
+  --error-box-bg: #fee2e2;
+  --error-box-content: #b91c1c;
 
   --font-family:
     -apple-system, BlinkMacSystemFont, 'Adwaita Sans', 'Inter Variable', 'Segoe UI', Roboto, Oxygen,

@@ -16,7 +16,7 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 defineProps({
   modelValue: Boolean,
   title: String,
@@ -46,7 +46,7 @@ const close = () => emit('update:modelValue', false)
   width: 320px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -63,11 +63,11 @@ const close = () => emit('update:modelValue', false)
 
 .modal-footer {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   justify-content: flex-end;
 }
 
-.modal-footer button {
+.modal-footer :slotted(button) {
   padding: 8px 16px;
   border: 1px solid var(--grid-large);
   border-radius: 6px;
@@ -76,17 +76,17 @@ const close = () => emit('update:modelValue', false)
   font-size: 14px;
 }
 
-.modal-footer button:hover {
+.modal-footer :slotted(button:hover) {
   background: var(--grid);
 }
 
-.modal-footer .primary-btn {
+.modal-footer :slotted(.primary-btn) {
   background: var(--vertex-selected);
   border-color: var(--vertex-selected);
   color: white;
 }
 
-.modal-footer .primary-btn:hover {
+.modal-footer :slotted(.primary-btn:hover) {
   background: var(--blue-btn);
   border-color: var(--blue-btn);
 }

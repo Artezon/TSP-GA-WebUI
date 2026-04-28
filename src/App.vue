@@ -2,7 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import GraphCanvas from './components/GraphCanvas.vue'
 import AppSidebar from './components/AppSidebar.vue'
-import { type Vertex, createGraph, addVertex, addEdge } from './state/graph'
+import { type Vertex, createGraph, addVertex, addEdge, setPos } from './state/graph'
 import { computeForceDirectedLayout } from './utils/layout'
 
 const canvasRef = ref<InstanceType<typeof GraphCanvas> | null>(null)
@@ -10,11 +10,12 @@ const currentGraph = ref<ReturnType<typeof createGraph> | null>(null)
 
 interface GraphData {
   vertices: { name: string; x: number; y: number }[]
-  edges: { v1: string; v2: string; weight: number }[]
+  edges: { v1: string; v2: string; w: number }[]
 }
 
 const edgeListText = ref('')
 const errorMessage = ref<string | null>(null)
+const loadedVertexDataOverride = ref<GraphData['vertices'] | null>(null)
 const showVertexNames = ref(true)
 const showEdgeWeights = ref(true)
 
@@ -24,7 +25,7 @@ const edgeCount = computed(() => graphData.value?.edges?.length ?? 0)
 function parseEdgeList(): GraphData | null {
   if (!edgeListText.value.trim()) return null
   const lines = edgeListText.value.split('\n')
-  const edges: { v1: string; v2: string; weight: number }[] = []
+  const edges: { v1: string; v2: string; w: number }[] = []
   const vertices = new Set<string>()
 
   for (let i = 0; i < lines.length; i++) {
@@ -32,15 +33,15 @@ function parseEdgeList(): GraphData | null {
     const line = lines[i]
     if (!line) continue
     const parts = line.trim().split(/\s+/)
-    if (parts.length !== 3) throw new Error(`Неверный формат: '${line}' (строка ${lineNum})`)
+    if (parts.length !== 3) throw new Error(`Неверный формат: "${line}" (строка ${lineNum})`)
     const v1 = parts[0]
     const v2 = parts[1]
     const w = parts[2]
-    if (!v1 || !v2 || !w) throw new Error(`Неверный формат: '${line}' (строка ${lineNum})`)
+    if (!v1 || !v2 || !w) throw new Error(`Неверный формат: "${line}" (строка ${lineNum})`)
     const weight = parseFloat(w)
-    if (isNaN(weight)) throw new Error(`Недопустимое значение веса: '${w}' (строка ${lineNum})`)
-    if (v1 === v2) throw new Error(`Петля не допускается: '${v1} ${v2} ${w}' (строка ${lineNum})`)
-    edges.push({ v1, v2, weight })
+    if (isNaN(weight)) throw new Error(`Недопустимое значение веса: "${w}" (строка ${lineNum})`)
+    if (v1 === v2) throw new Error(`Петля не допускается: "${v1} ${v2} ${w}" (строка ${lineNum})`)
+    edges.push({ v1, v2, w: weight })
     vertices.add(v1)
     vertices.add(v2)
   }
@@ -70,9 +71,11 @@ function loadGraph() {
       const text = await file.text()
       const data = JSON.parse(text) as GraphData
       if (!data.vertices || !data.edges) throw new Error('Неверный формат JSON')
-      edgeListText.value = data.edges.map((e) => `${e.v1} ${e.v2} ${e.weight}`).join('\n')
+      loadedVertexDataOverride.value = data.vertices
+      edgeListText.value = data.edges.map((e) => `${e.v1} ${e.v2} ${e.w}`).join('\n')
     } catch {
-      errorMessage.value = 'Не удалось загрузить граф'
+      errorMessage.value =
+        'Не удалось загрузить граф\nВозможно, файл повреждён или не является файлом графа.'
     }
   }
   input.click()
@@ -126,16 +129,26 @@ function applyGraphToCanvas() {
     const v2 = vertexMap.get(e.v2)
     if (v1 && v2) {
       const edge = addEdge(graph, v1, v2)
-      if (edge) edge.weight = e.weight
+      if (edge) edge.weight = e.w
     }
   }
 
-  const positions = computeForceDirectedLayout(graph)
-  for (const v of graph.vertices) {
-    const pos = positions.get(v)
-    if (pos) {
-      v.x = pos.x * 10
-      v.y = pos.y * 10
+  if (loadedVertexDataOverride.value) {
+    const posMap = new Map(loadedVertexDataOverride.value.map((v) => [v.name, v]))
+    for (const v of graph.vertices) {
+      const pos = posMap.get(v.name)
+      if (pos) {
+        setPos(v, pos.x, pos.y)
+      }
+    }
+    loadedVertexDataOverride.value = null
+  } else {
+    const positions = computeForceDirectedLayout(graph)
+    for (const v of graph.vertices) {
+      const pos = positions.get(v)
+      if (pos) {
+        setPos(v, pos.x * 10, pos.y * 10)
+      }
     }
   }
 
@@ -233,11 +246,14 @@ watch(edgeListText, () => {
 }
 
 .error-box {
-  background: #fee2e2;
-  border: 1px solid #ef4444;
+  background: var(--error-box-bg);
+  border: 1px solid var(--error-box-content);
   border-radius: 8px;
-  padding: 16px 24px;
-  color: #b91c1c;
+  padding: 12px 24px;
+  color: var(--error-box-content);
   font-size: 14px;
+  white-space: pre-wrap;
+  line-height: 2;
+  text-align: center;
 }
 </style>
