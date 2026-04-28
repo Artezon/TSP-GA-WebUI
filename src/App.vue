@@ -2,27 +2,27 @@
 import { ref, watch, computed } from 'vue'
 import GraphCanvas from './components/GraphCanvas.vue'
 import AppSidebar from './components/AppSidebar.vue'
-import { type Vertex, createGraph, addVertex, addEdge, setPos } from './state/graph'
+import { type Vertex, createGraph, addVertex, addEdge, setPos, setWeight } from './state/graph'
 import { computeForceDirectedLayout } from './utils/layout'
 
 const canvasRef = ref<InstanceType<typeof GraphCanvas> | null>(null)
 const currentGraph = ref<ReturnType<typeof createGraph> | null>(null)
 
-interface GraphData {
+interface SerializableGraph {
   vertices: { name: string; x: number; y: number }[]
   edges: { v1: string; v2: string; w: number }[]
 }
 
 const edgeListText = ref('')
 const errorMessage = ref<string | null>(null)
-const loadedVertexDataOverride = ref<GraphData['vertices'] | null>(null)
+const loadedVertexDataOverride = ref<SerializableGraph['vertices'] | null>(null)
 const showVertexNames = ref(true)
 const showEdgeWeights = ref(true)
 
-const vertexCount = computed(() => graphData.value?.vertices?.length ?? 0)
-const edgeCount = computed(() => graphData.value?.edges?.length ?? 0)
+const vertexCount = computed(() => currentGraph.value?.vertices?.size ?? 0)
+const edgeCount = computed(() => currentGraph.value?.edges?.size ?? 0)
 
-function parseEdgeList(): GraphData | null {
+function parseEdgeList(): SerializableGraph | null {
   if (!edgeListText.value.trim()) return null
   const lines = edgeListText.value.split('\n')
   const edges: { v1: string; v2: string; w: number }[] = []
@@ -52,7 +52,7 @@ function parseEdgeList(): GraphData | null {
   }
 }
 
-const graphData = computed<GraphData | null>(() => {
+const serializableGraph = computed<SerializableGraph | null>(() => {
   try {
     return parseEdgeList()
   } catch {
@@ -69,8 +69,8 @@ function loadGraph() {
     if (!file) return
     try {
       const text = await file.text()
-      const data = JSON.parse(text) as GraphData
-      if (!data.vertices || !data.edges) throw new Error('Неверный формат JSON')
+      const data = JSON.parse(text) as SerializableGraph
+      if (!data.vertices || !data.edges) throw new Error('Invalid JSON format')
       loadedVertexDataOverride.value = data.vertices
       edgeListText.value = data.edges.map((e) => `${e.v1} ${e.v2} ${e.w}`).join('\n')
     } catch {
@@ -82,14 +82,14 @@ function loadGraph() {
 }
 
 function saveGraph() {
-  if (!graphData.value || !currentGraph.value) return
-  const data: GraphData = {
+  if (!serializableGraph.value || !currentGraph.value) return
+  const data: SerializableGraph = {
     vertices: Array.from(currentGraph.value.vertices).map((v) => ({
       name: v.name,
       x: v.x,
       y: v.y,
     })),
-    edges: graphData.value.edges,
+    edges: serializableGraph.value.edges,
   }
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
@@ -110,7 +110,7 @@ function handleGenerate(text: string) {
 }
 
 function applyGraphToCanvas() {
-  if (!graphData.value) {
+  if (!serializableGraph.value) {
     canvasRef.value?.clearGraph()
     return
   }
@@ -118,18 +118,18 @@ function applyGraphToCanvas() {
   const graph = createGraph()
   const vertexMap = new Map<string, Vertex>()
 
-  for (const v of graphData.value.vertices) {
+  for (const v of serializableGraph.value.vertices) {
     const vertex = addVertex(graph, 0, 0)
     vertex.name = v.name
     vertexMap.set(v.name, vertex)
   }
 
-  for (const e of graphData.value.edges) {
+  for (const e of serializableGraph.value.edges) {
     const v1 = vertexMap.get(e.v1)
     const v2 = vertexMap.get(e.v2)
     if (v1 && v2) {
       const edge = addEdge(graph, v1, v2)
-      if (edge) edge.weight = e.w
+      if (edge) setWeight(edge, e.w)
     }
   }
 

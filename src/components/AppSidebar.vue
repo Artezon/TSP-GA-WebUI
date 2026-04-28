@@ -75,7 +75,7 @@ function handleGenerate() {
     </div>
   </aside>
 
-  <Modal v-model="showGenerateModal" title="Сгенерировать случайный граф">
+  <Modal v-model="showGenerateModal" title="Сгенерировать случайный граф" width="320px">
     <div class="modal-field">
       <label>Число вершин:</label>
       <input type="number" v-model="vertexCount" min="2" max="100" />
@@ -85,11 +85,11 @@ function handleGenerate() {
       <input type="range" v-model="density" min="0" max="100" />
     </div>
     <div class="modal-field">
-      <label>Минимальная длина ребра:</label>
+      <label>Желательный минимальный вес ребра:</label>
       <input type="number" v-model="minEdgeLength" min="0" :max="graphSize" />
     </div>
     <div class="modal-field">
-      <label>Размер графа:</label>
+      <label>Максимальный размер графа:</label>
       <input type="number" v-model="graphSize" min="100" max="10000" step="100" />
     </div>
     <template #footer>

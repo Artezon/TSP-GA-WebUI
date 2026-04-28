@@ -72,7 +72,7 @@ export function setPos(v: Vertex, x: number, y: number) {
 }
 
 export function setWeight(e: Edge, w: number) {
-  e.weight = Math.round(w)
+  e.weight = w
 }
 
 export function getVertexAt(g: Graph, x: number, y: number, radius: number): Vertex | null {
