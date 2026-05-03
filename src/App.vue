@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import GraphCanvas from './components/GraphCanvas.vue'
 import AppSidebar from './components/AppSidebar.vue'
+import TspSidebar from './components/TspSidebar.vue'
+import BaseModal from './components/BaseModal.vue'
 import { type Vertex, createGraph, addVertex, addEdge, setPos, setWeight } from './state/graph'
+import { emptySelection } from './state/ui'
 import { computeForceDirectedLayout } from './utils/layout'
+import { loadGraphFromFile, saveGraphToFile, type SerializableGraph } from './utils/graphFile'
+import { terminateWorker } from './tsp/runner'
+import { parseEdgeList } from './utils/edgeList'
 
 const canvasRef = ref<InstanceType<typeof GraphCanvas> | null>(null)
 const currentGraph = ref<ReturnType<typeof createGraph> | null>(null)
 
-interface SerializableGraph {
-  vertices: { name: string; x: number; y: number }[]
-  edges: { v1: string; v2: string; w: number }[]
-}
-
 const edgeListText = ref('')
-const errorMessage = ref<string | null>(null)
+const errorMsg = ref<string | null>(null)
+const modalMsg = ref<string | null>(null)
 const loadedVertexDataOverride = ref<SerializableGraph['vertices'] | null>(null)
 const showVertexNames = ref(true)
 const showEdgeWeights = ref(true)
@@ -22,82 +24,29 @@ const showEdgeWeights = ref(true)
 const vertexCount = computed(() => currentGraph.value?.vertices?.size ?? 0)
 const edgeCount = computed(() => currentGraph.value?.edges?.size ?? 0)
 
-function parseEdgeList(): SerializableGraph | null {
-  if (!edgeListText.value.trim()) return null
-  const lines = edgeListText.value.split('\n')
-  const edges: { v1: string; v2: string; w: number }[] = []
-  const vertices = new Set<string>()
-
-  for (let i = 0; i < lines.length; i++) {
-    const lineNum = i + 1
-    const line = lines[i]
-    if (!line) continue
-    const parts = line.trim().split(/\s+/)
-    if (parts.length !== 3) throw new Error(`Неверный формат: "${line}" (строка ${lineNum})`)
-    const v1 = parts[0]
-    const v2 = parts[1]
-    const w = parts[2]
-    if (!v1 || !v2 || !w) throw new Error(`Неверный формат: "${line}" (строка ${lineNum})`)
-    const weight = parseFloat(w)
-    if (isNaN(weight)) throw new Error(`Недопустимое значение веса: "${w}" (строка ${lineNum})`)
-    if (v1 === v2) throw new Error(`Петля не допускается: "${v1} ${v2} ${w}" (строка ${lineNum})`)
-    edges.push({ v1, v2, w: weight })
-    vertices.add(v1)
-    vertices.add(v2)
-  }
-
-  return {
-    vertices: Array.from(vertices).map((name) => ({ name, x: 0, y: 0 })),
-    edges,
-  }
-}
-
 const serializableGraph = computed<SerializableGraph | null>(() => {
   try {
-    return parseEdgeList()
+    return parseEdgeList(edgeListText.value)
   } catch {
     return null
   }
 })
 
 function loadGraph() {
-  const input = document.createElement('input')
-  input.type = 'file'
-  input.accept = '.json'
-  input.onchange = async () => {
-    const file = input.files?.[0]
-    if (!file) return
-    try {
-      const text = await file.text()
-      const data = JSON.parse(text) as SerializableGraph
-      if (!data.vertices || !data.edges) throw new Error('Invalid JSON format')
-      loadedVertexDataOverride.value = data.vertices
-      edgeListText.value = data.edges.map((e) => `${e.v1} ${e.v2} ${e.w}`).join('\n')
-    } catch {
-      errorMessage.value =
-        'Не удалось загрузить граф\nВозможно, файл повреждён или не является файлом графа.'
-    }
-  }
-  input.click()
+  loadGraphFromFile(
+    (vertices, edgeText) => {
+      loadedVertexDataOverride.value = vertices
+      edgeListText.value = edgeText
+    },
+    (message) => {
+      modalMsg.value = message
+    },
+  )
 }
 
 function saveGraph() {
-  if (!serializableGraph.value || !currentGraph.value) return
-  const data: SerializableGraph = {
-    vertices: Array.from(currentGraph.value.vertices).map((v) => ({
-      name: v.name,
-      x: v.x,
-      y: v.y,
-    })),
-    edges: serializableGraph.value.edges,
-  }
-  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = 'graph.json'
-  a.click()
-  URL.revokeObjectURL(url)
+  if (currentGraph.value) saveGraphToFile(currentGraph.value)
+  else modalMsg.value = 'Невозможно сохранить пустой граф.'
 }
 
 function handleClear() {
@@ -158,19 +107,51 @@ function applyGraphToCanvas() {
 
 watch(edgeListText, () => {
   try {
-    const data = parseEdgeList()
+    errorMsg.value = null
+    const data = parseEdgeList(edgeListText.value)
     if (data) {
-      errorMessage.value = null
       applyGraphToCanvas()
     } else {
-      errorMessage.value = null
       canvasRef.value?.clearGraph()
       currentGraph.value = null
     }
   } catch (e) {
-    errorMessage.value = e instanceof Error ? e.message : 'Invalid graph format'
+    errorMsg.value = e instanceof Error ? e.message : 'Неверный формат графа'
     canvasRef.value?.clearGraph()
   }
+})
+
+function handleTourSelected(vertexNames: string[]) {
+  if (!currentGraph.value || vertexNames.length === 0) {
+    canvasRef.value?.setSelection(emptySelection())
+    return
+  }
+
+  const sel = emptySelection()
+  const vertexMap = new Map(Array.from(currentGraph.value.vertices).map((v) => [v.name, v]))
+
+  for (const name of vertexNames) {
+    const v = vertexMap.get(name)
+    if (v) sel.vertices.add(v)
+  }
+
+  for (let i = 0; i < vertexNames.length - 1; i++) {
+    const a = vertexMap.get(vertexNames[i]!)
+    const b = vertexMap.get(vertexNames[i + 1]!)
+    if (!a || !b) continue
+    for (const e of currentGraph.value.adjacency.get(a) ?? []) {
+      if (e.v1 === b || e.v2 === b) {
+        sel.edges.add(e)
+        break
+      }
+    }
+  }
+
+  canvasRef.value?.setSelection(sel)
+}
+
+onBeforeUnmount(() => {
+  terminateWorker()
 })
 </script>
 
@@ -192,17 +173,30 @@ watch(edgeListText, () => {
     </AppSidebar>
 
     <main class="main-content">
-      <div v-if="errorMessage" class="error-overlay">
-        <div class="error-box">{{ errorMessage }}</div>
+      <div v-if="errorMsg" class="error-overlay">
+        <div class="error-box">{{ errorMsg }}</div>
       </div>
       <GraphCanvas
         ref="canvasRef"
-        :error="!!errorMessage"
+        :error="!!errorMsg"
         :showVertexNames="showVertexNames"
         :showEdgeWeights="showEdgeWeights"
       />
     </main>
+
+    <TspSidebar
+      :graph="currentGraph"
+      :vertexCount="vertexCount"
+      @tourSelected="handleTourSelected"
+    />
   </div>
+
+  <BaseModal :modelValue="modalMsg != null" @update:modelValue="modalMsg = null" title="Ошибка">
+    <p style="white-space: pre-wrap">{{ modalMsg }}</p>
+    <template #footer>
+      <button @click="modalMsg = null">OK</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>

@@ -1,21 +1,3 @@
-<template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="modelValue" class="modal-overlay" @click.self="close">
-        <div class="modal" :style="modalStyle">
-          <h3 v-if="title" class="modal-title">{{ title }}</h3>
-          <div class="modal-body">
-            <slot />
-          </div>
-          <div v-if="$slots.footer" class="modal-footer">
-            <slot name="footer" />
-          </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
-</template>
-
 <script setup lang="ts">
 import { computed, type StyleValue } from 'vue'
 
@@ -43,6 +25,24 @@ const modalStyle = computed<StyleValue>(() => {
   return style
 })
 </script>
+
+<template>
+  <Teleport to="body">
+    <Transition name="modal">
+      <div v-if="modelValue" class="modal-overlay" @click.self="close">
+        <div class="modal" :style="modalStyle">
+          <h3 v-if="title" class="modal-title">{{ title }}</h3>
+          <div class="modal-body">
+            <slot />
+          </div>
+          <div v-if="$slots.footer" class="modal-footer">
+            <slot name="footer" />
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+</template>
 
 <style scoped>
 .modal-overlay {
@@ -79,36 +79,15 @@ const modalStyle = computed<StyleValue>(() => {
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
+  padding: 2px;
+  margin: -2px;
+  font-size: 13px;
 }
 
 .modal-footer {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-}
-
-.modal-footer :slotted(button) {
-  padding: 8px 16px;
-  border: 1px solid var(--grid-large);
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.modal-footer :slotted(button:hover) {
-  background: var(--grid);
-}
-
-.modal-footer :slotted(.primary-btn) {
-  background: var(--vertex-selected);
-  border-color: var(--vertex-selected);
-  color: white;
-}
-
-.modal-footer :slotted(.primary-btn:hover) {
-  background: var(--blue-btn);
-  border-color: var(--blue-btn);
 }
 
 .modal-enter-active,
@@ -128,11 +107,7 @@ const modalStyle = computed<StyleValue>(() => {
     opacity 0.25s ease;
 }
 
-.modal-enter-from .modal {
-  opacity: 0;
-  transform: scale(0.9);
-}
-
+.modal-enter-from .modal,
 .modal-leave-to .modal {
   opacity: 0;
   transform: scale(0.9);

@@ -1,15 +1,9 @@
-<template>
-  <div class="canvas-wrap">
-    <canvas ref="canvasEl" class="canvas" @mousedown="onMousedown" @wheel.prevent="onWheel" />
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { draw, getColors, getFonts } from '../renderer/canvasRenderer'
 import { vx, vy, zoom, applyZoom } from '../state/viewport'
 import { createGraph, clearGraph as clearGraphState, type Graph } from '../state/graph'
-import { emptySelection } from '../state/ui'
+import { emptySelection, type Selection } from '../state/ui'
 
 const props = defineProps<{
   error?: boolean
@@ -19,7 +13,7 @@ const props = defineProps<{
 
 const canvasEl = ref<HTMLCanvasElement | null>(null)
 const graph = ref<Graph>(createGraph())
-const selection = emptySelection()
+let selection = emptySelection()
 
 function redraw() {
   const canvas = canvasEl.value
@@ -44,7 +38,12 @@ function setGraph(g: Graph) {
   redraw()
 }
 
-defineExpose({ clearGraph, setGraph })
+function setSelection(sel: Selection) {
+  selection = sel
+  redraw()
+}
+
+defineExpose({ clearGraph, setGraph, setSelection })
 
 watch(
   () => props.error,
@@ -115,6 +114,12 @@ onUnmounted(() => {
   window.removeEventListener('mousemove', onMousemove)
 })
 </script>
+
+<template>
+  <div class="canvas-wrap">
+    <canvas ref="canvasEl" class="canvas" @mousedown="onMousedown" @wheel.prevent="onWheel" />
+  </div>
+</template>
 
 <style scoped>
 .canvas-wrap {

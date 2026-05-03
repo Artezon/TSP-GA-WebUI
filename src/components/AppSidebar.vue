@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { generateRandomGraph, type GenerateOptions } from '../utils/randomGraph'
 import Modal from './BaseModal.vue'
+import Toggle from './ToggleSwitch.vue'
 
 const emit = defineEmits<{
   loadGraph: []
@@ -37,12 +38,12 @@ function handleGenerate() {
 <template>
   <aside class="sidebar">
     <div class="sidebar-btn-row">
-      <button class="primary-btn" @click="emit('loadGraph')">Загрузить</button>
-      <button class="primary-btn" @click="emit('saveGraph')">Сохранить</button>
+      <button @click="emit('loadGraph')">Загрузить</button>
+      <button @click="emit('saveGraph')">Сохранить</button>
     </div>
     <div class="sidebar-btn-row">
-      <button class="primary-btn clear-btn" @click="emit('clear')">Очистить</button>
-      <button class="primary-btn lucky-btn" @click="showGenerateModal = true">Мне повезёт!</button>
+      <button class="clear-btn" @click="emit('clear')">Очистить</button>
+      <button class="lucky-btn" @click="showGenerateModal = true">Мне повезёт!</button>
     </div>
 
     <div class="edge-list-section">
@@ -64,14 +65,8 @@ function handleGenerate() {
     </div>
 
     <div class="display-toggles">
-      <label class="toggle-row">
-        <input type="checkbox" v-model="showVertexNames" />
-        <span>Названия вершин</span>
-      </label>
-      <label class="toggle-row">
-        <input type="checkbox" v-model="showEdgeWeights" />
-        <span>Длины рёбер</span>
-      </label>
+      <Toggle v-model="showVertexNames">Названия вершин</Toggle>
+      <Toggle v-model="showEdgeWeights">Длины рёбер</Toggle>
     </div>
   </aside>
 
@@ -93,18 +88,13 @@ function handleGenerate() {
       <input type="number" v-model="graphSize" min="100" max="10000" step="100" />
     </div>
     <template #footer>
-      <button @click="showGenerateModal = false">Отмена</button>
-      <button class="primary-btn" @click="handleGenerate">Создать граф</button>
+      <button class="cancel-btn" @click="showGenerateModal = false">Отмена</button>
+      <button class="primary" @click="handleGenerate">Создать граф</button>
     </template>
   </Modal>
 </template>
 
 <style scoped>
-* {
-  font-size: 13px;
-  color: var(--text);
-}
-
 .sidebar {
   width: 260px;
   background: var(--header-bg);
@@ -124,18 +114,16 @@ function handleGenerate() {
   gap: 8px;
 }
 
-.primary-btn {
+button {
   flex: 1;
-  padding: 8px 12px;
-  border: 1px solid var(--grid-large);
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-  transition: background 0.15s;
 }
 
-.primary-btn:hover {
-  background: var(--grid);
+.lucky-btn:hover {
+  background-color: var(--green-shade) !important;
+}
+
+.clear-btn:hover {
+  background-color: var(--red-shade) !important;
 }
 
 .edge-list-section {
@@ -190,13 +178,6 @@ function handleGenerate() {
   cursor: pointer;
 }
 
-.toggle-row input[type='checkbox'] {
-  width: 15px;
-  height: 15px;
-  cursor: pointer;
-  accent-color: var(--vertex-selected);
-}
-
 .modal-field {
   display: flex;
   flex-direction: column;
@@ -213,13 +194,10 @@ function handleGenerate() {
 
 .modal-field input[type='range'] {
   width: 100%;
+  accent-color: var(--blue-btn);
 }
 
-.lucky-btn:hover {
-  background-color: var(--green-btn);
-}
-
-.clear-btn:hover {
-  background-color: var(--red-btn);
+.cancel-btn {
+  flex: 0;
 }
 </style>

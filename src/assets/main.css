@@ -13,9 +13,11 @@
   --selection: rgba(77, 171, 247, 0.3);
   --selection-box: rgba(77, 171, 247, 0.15);
   --text: #2c2c2c;
-  --red-btn: #f9bfbf;
-  --green-btn: #bff9cd;
+  --red-shade: #f9bfbf;
+  --green-shade: #bff9cd;
+  --red-btn: #cc3333;
   --blue-btn: #3b8fd6;
+  --average-chart-line: #ef4444;
   --error-box-bg: #fee2e2;
   --error-box-content: #b91c1c;
 
@@ -31,6 +33,8 @@
   margin: 0;
   font-weight: normal;
   font-family: var(--font-family);
+  font-size: 13px;
+  color: var(--text);
 }
 
 html,
@@ -59,4 +63,40 @@ code {
   background: var(--canvas-bg);
   padding: 3px 5px;
   line-height: 1.6;
+}
+
+button {
+  padding: 8px 12px;
+  border: 1px solid var(--grid-large);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--blue-btn);
+  border-color: var(--blue-btn);
+  color: #fff !important;
+}
+
+button.danger {
+  background: var(--red-btn);
+  border-color: var(--red-btn);
+  color: #fff !important;
+}
+
+button:not(:is(.primary, .danger)):not(:disabled):hover {
+  background: var(--grid);
+}
+
+button:is(.primary, .danger):not(:disabled):hover {
+  opacity: 0.85;
 }
