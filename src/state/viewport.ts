@@ -5,7 +5,12 @@ const ZOOM_OUT = 1 / ZOOM_IN
 
 export const vx = ref(0)
 export const vy = ref(0)
-export const zoom = ref(1)
+export const zoom = ref(0.5)
+
+export function initializeViewport(width: number, height: number) {
+  vx.value = width / 2 / zoom.value
+  vy.value = height / 2 / zoom.value
+}
 
 // Convert screen coordinates to world coordinates
 export function toWorld(clientX: number, clientY: number, canvas: HTMLCanvasElement) {
