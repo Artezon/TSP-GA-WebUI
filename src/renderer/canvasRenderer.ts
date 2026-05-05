@@ -1,4 +1,4 @@
-import type { Graph, Vertex } from '../state/graph'
+import type { Edge, Graph, Vertex } from '../state/graph'
 import type { Selection } from '../state/ui'
 
 const GRID_STEP_1 = 50
@@ -137,14 +137,7 @@ export function drawVertices(
   zoom: number,
   showNames = true,
 ) {
-  const radius = NODE_RADIUS / zoom
-  const stroke = NODE_STROKE / zoom
-  ctx.font = `${NODE_NAME_FONT_SIZE / zoom}px ${fontFamily}`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-
-  for (const v of graph.vertices) {
-    const selected = selection.vertices.has(v)
+  function _draw(v: Vertex, selected: boolean) {
     ctx.beginPath()
     ctx.arc(v.x, v.y, radius, 0, Math.PI * 2)
     ctx.fillStyle = colors.vertex
@@ -157,6 +150,20 @@ export function drawVertices(
       ctx.fillText(String(v.name), v.x, v.y)
     }
   }
+
+  const radius = NODE_RADIUS / zoom
+  const stroke = NODE_STROKE / zoom
+  ctx.font = `${NODE_NAME_FONT_SIZE / zoom}px ${fontFamily}`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+
+  for (const v of graph.vertices) {
+    if (selection.vertices.has(v)) continue
+    _draw(v, false)
+  }
+  for (const v of selection.vertices) {
+    _draw(v, true)
+  }
 }
 
 export function drawEdges(
@@ -165,15 +172,22 @@ export function drawEdges(
   selection: Selection,
   zoom: number,
 ) {
-  const width = EDGE_WIDTH / zoom
-  ctx.lineWidth = width
-  for (const e of graph.edges) {
-    const selected = selection.edges.has(e)
+  function _draw(e: Edge, selected: boolean) {
     ctx.beginPath()
     ctx.moveTo(e.v1.x, e.v1.y)
     ctx.lineTo(e.v2.x, e.v2.y)
     ctx.strokeStyle = selected ? colors.edgeSelected : colors.edge
     ctx.stroke()
+  }
+
+  const width = EDGE_WIDTH / zoom
+  ctx.lineWidth = width
+  for (const e of graph.edges) {
+    if (selection.edges.has(e)) continue
+    _draw(e, false)
+  }
+  for (const e of selection.edges) {
+    _draw(e, true)
   }
 }
 
