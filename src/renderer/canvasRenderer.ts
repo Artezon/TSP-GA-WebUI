@@ -21,7 +21,6 @@ interface Colors {
   vertexSelected: string
   edge: string
   edgeSelected: string
-  edgePending: string
   graphText: string
   selection: string
   selectionBox: string
@@ -38,10 +37,9 @@ export function getColors() {
     gridLarge: style.getPropertyValue('--grid-large'),
     vertex: style.getPropertyValue('--vertex'),
     vertexStroke: style.getPropertyValue('--vertex-stroke'),
-    vertexSelected: style.getPropertyValue('--vertex-selected'),
+    vertexSelected: style.getPropertyValue('--blue-btn'),
     edge: style.getPropertyValue('--edge'),
-    edgeSelected: style.getPropertyValue('--edge-selected'),
-    edgePending: style.getPropertyValue('--edge-pending'),
+    edgeSelected: style.getPropertyValue('--blue-btn'),
     graphText: style.getPropertyValue('--graph-text'),
     selection: style.getPropertyValue('--selection'),
     selectionBox: style.getPropertyValue('--selection-box'),
@@ -152,15 +150,15 @@ export function drawVertices(
   }
 
   const radius = NODE_RADIUS / zoom
-  const stroke = NODE_STROKE / zoom
+  let stroke = NODE_STROKE / zoom
   ctx.font = `${NODE_NAME_FONT_SIZE / zoom}px ${fontFamily}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-
   for (const v of graph.vertices) {
     if (selection.vertices.has(v)) continue
     _draw(v, false)
   }
+  stroke *= 1.5
   for (const v of selection.vertices) {
     _draw(v, true)
   }
@@ -186,27 +184,10 @@ export function drawEdges(
     if (selection.edges.has(e)) continue
     _draw(e, false)
   }
+  ctx.lineWidth *= 1.5
   for (const e of selection.edges) {
     _draw(e, true)
   }
-}
-
-export function drawPendingEdge(
-  ctx: CanvasRenderingContext2D,
-  graph: Graph,
-  from: Vertex,
-  toX: number,
-  toY: number,
-  zoom: number,
-) {
-  ctx.beginPath()
-  ctx.moveTo(from.x, from.y)
-  ctx.lineTo(toX, toY)
-  ctx.strokeStyle = colors.edgePending
-  ctx.lineWidth = EDGE_WIDTH / zoom
-  ctx.setLineDash([EDGE_PENDING_DASH / zoom, EDGE_PENDING_DASH / zoom])
-  ctx.stroke()
-  ctx.setLineDash([])
 }
 
 export function drawEdgeLabels(
@@ -219,7 +200,7 @@ export function drawEdgeLabels(
   ctx.font = `${EDGE_LABEL_FONT_SIZE / zoom}px ${fontFamily}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.lineWidth = 1 / zoom
+  const lineWidth = EDGE_WIDTH / zoom
   for (const e of graph.edges) {
     const midX = (e.v1.x + e.v2.x) / 2
     const midY = (e.v1.y + e.v2.y) / 2
@@ -232,6 +213,7 @@ export function drawEdgeLabels(
     const selected = selection.edges.has(e)
     ctx.fillStyle = colors.vertex
     ctx.strokeStyle = selected ? colors.edgeSelected : colors.edge
+    ctx.lineWidth = selected ? lineWidth * 1.5 : lineWidth
     ctx.beginPath()
     ctx.roundRect(midX - boxWidth / 2, midY - boxHeight / 2, boxWidth, boxHeight, cornerRadius)
     ctx.fill()

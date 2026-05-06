@@ -150,6 +150,11 @@ watch(
   },
 )
 
+onMounted(() => {
+  const style = getComputedStyle(document.documentElement)
+  Chart.defaults.font.family = style.getPropertyValue('--font-family')
+})
+
 onBeforeUnmount(() => {
   chart?.destroy()
 })
