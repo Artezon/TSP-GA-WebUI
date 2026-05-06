@@ -3,14 +3,15 @@ import type { Graph } from '@/state/graph'
 export interface ParamDef {
   key: string
   label: string
-  type: 'number' | 'range'
+  type: 'number' | 'range' | 'select'
   min?: number
   max?: number
   step?: number
-  default: number
+  default: number | string
+  options?: [string, string][]
 }
 
-export type ParamValues = Record<string, number>
+export type ParamValues = Record<string, number | string>
 
 export type AlgoFunc = (
   graph: Graph,

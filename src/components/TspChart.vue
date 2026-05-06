@@ -115,7 +115,7 @@ function buildChart(canvas: HTMLCanvasElement) {
       scales: {
         x: {
           display: !isMini,
-          title: { display: true, text: 'Итерация' },
+          title: { display: true, text: 'Итерация (поколение)' },
           ticks: { maxTicksLimit: 10 },
         },
         y: {

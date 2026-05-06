@@ -13,7 +13,7 @@ const emit = defineEmits<{
 
 const showGenerateModal = ref(false)
 const vertexCount = ref(50)
-const density = ref(50)
+const density = ref(100)
 const minEdgeLength = ref(25)
 const graphSize = ref(500)
 

@@ -199,7 +199,18 @@ watch(
             {{ p.label }}
             <span v-if="p.type === 'range'" class="param-value">{{ paramValues[p.key] }}</span>
           </label>
+          <select
+            v-if="p.type === 'select'"
+            v-model="paramValues[p.key]"
+            class="param-input select"
+            :disabled="isRunning"
+          >
+            <option v-for="opt in p.options" :key="opt[0]" :value="opt[0]">
+              {{ opt[1] }}
+            </option>
+          </select>
           <input
+            v-else
             :type="p.type"
             v-model.number="paramValues[p.key]"
             :min="p.min"
@@ -257,7 +268,7 @@ watch(
         }}</strong>
       </div>
       <div class="result-row">
-        <span class="result-label">Итераций</span>
+        <span class="result-label">Итераций (поколений)</span>
         <strong class="result-value">{{ iterations > 0 ? iterations : '–' }}</strong>
       </div>
       <div class="result-row">
@@ -422,6 +433,15 @@ watch(
 .param-input.range {
   width: 100%;
   accent-color: var(--blue-btn);
+}
+
+.param-input.select {
+  padding: 6px 8px;
+  border: 1px solid var(--grid-large);
+  border-radius: 6px;
+  background: var(--canvas-bg);
+  width: 100%;
+  cursor: pointer;
 }
 
 /* Run */
