@@ -58,6 +58,11 @@ let timerInterval: ReturnType<typeof setInterval> | null = null
 
 const showFullChartModal = ref(false)
 
+function isParamVisible(p: any): boolean {
+  if (!p.showIf) return true
+  return paramValues.value[p.showIf.key] === p.showIf.value
+}
+
 function startTimer() {
   startTime = performance.now()
   timerInterval = setInterval(() => {
@@ -194,7 +199,7 @@ watch(
     <div class="section" v-if="currentAlgo.params.length > 0" :class="{ disabled: isRunning }">
       <div class="section-title">Параметры</div>
       <div class="param-list">
-        <div v-for="p in currentAlgo.params" :key="p.key" class="param-row">
+        <div v-for="p in currentAlgo.params" :key="p.key" class="param-row" v-show="isParamVisible(p)">
           <label class="param-label">
             {{ p.label }}
             <span v-if="p.type === 'range'" class="param-value">{{ paramValues[p.key] }}</span>

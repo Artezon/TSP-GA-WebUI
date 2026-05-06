@@ -9,6 +9,7 @@ export interface ParamDef {
   step?: number
   default: number | string
   options?: [string, string][]
+  showIf?: { key: string; value: number | string }
 }
 
 export type ParamValues = Record<string, number | string>

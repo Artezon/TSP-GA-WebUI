@@ -52,6 +52,7 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       max: 50,
       step: 1,
       default: 5,
+      showIf: { key: 'selectionType', value: 'tournament' },
     },
     {
       key: 'crossoverType',
@@ -109,6 +110,7 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       max: 100,
       step: 1,
       default: 10,
+      showIf: { key: 'evolutionModel', value: 'de-vries' },
     },
     {
       key: 'catastropheProbability',
@@ -118,6 +120,7 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       max: 1,
       step: 0.01,
       default: 0.5,
+      showIf: { key: 'evolutionModel', value: 'de-vries' },
     },
     {
       key: 'catastropheDestroyRate',
@@ -127,6 +130,7 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       max: 0.99,
       step: 0.01,
       default: 0.8,
+      showIf: { key: 'evolutionModel', value: 'de-vries' },
     },
   ],
   run: runGeneticAlgorithm,
