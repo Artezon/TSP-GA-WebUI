@@ -31,6 +31,7 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       options: [
         ['darwin', 'Модель Дарвина'],
         ['de-vries', 'Модель Де-Фриза (катастроф)'],
+        ['lamarck', 'Модель Ламарка (локальный поиск 2-opt)'],
       ],
       default: 'darwin',
     },
@@ -132,6 +133,16 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       default: 0.8,
       showIf: { key: 'evolutionModel', value: 'de-vries' },
     },
+    {
+      key: 'lamarckIterations',
+      label: '[Ламарк] Итераций локального поиска (2-opt) на особь (маршрут)',
+      type: 'number',
+      min: 1,
+      max: 100,
+      step: 1,
+      default: 5,
+      showIf: { key: 'evolutionModel', value: 'lamarck' },
+    },
   ],
   run: runGeneticAlgorithm,
 }
@@ -142,6 +153,38 @@ function createPopulation(
   distMatrix: Map<string, Map<string, number>>,
 ): string[][] {
   return Array.from({ length: size }, () => createRandomSparseValidTour(vertices, distMatrix))
+}
+
+function twoOpt(
+  tour: string[],
+  distMatrix: Map<string, Map<string, number>>,
+  iterations: number,
+): string[] {
+  let bestTour = tour.slice()
+  let bestLength = tourLength(bestTour, distMatrix)
+  let iter = 0
+  let improved = true
+
+  while (improved && iter < iterations) {
+    improved = false
+    iter++
+
+    for (let i = 0; i < bestTour.length - 1; i++) {
+      for (let j = i + 1; j < bestTour.length; j++) {
+        const newTour = bestTour.slice()
+        // Reverse the segment from i to j
+        newTour.splice(i, j - i + 1, ...newTour.slice(i, j + 1).reverse())
+        const newLength = tourLength(newTour, distMatrix)
+        if (newLength < bestLength) {
+          bestTour = newTour
+          bestLength = newLength
+          improved = true
+        }
+      }
+    }
+  }
+
+  return bestTour
 }
 
 function tournamentSelect(
@@ -277,6 +320,7 @@ export async function runGeneticAlgorithm(
   const catastropheInterval = params.catastropheInterval as number
   const catastropheProbability = params.catastropheProbability as number
   const catastropheDestroyRate = params.catastropheDestroyRate as number
+  const lamarckIterations = params.lamarckIterations as number
 
   if (tournamentSize > populationSize) {
     throw new Error(
@@ -343,6 +387,13 @@ export async function runGeneticAlgorithm(
       child1 = mutate(child1)
       child2 = mutate(child2)
       newPopulation.push(child1, child2)
+    }
+
+    // Run 2-opt local search for all individuals (acquired traits in Lamarck model)
+    if (evolutionModel === 'lamarck') {
+      for (let i = 0; i < newPopulation.length; i++) {
+        newPopulation[i] = twoOpt(newPopulation[i]!, distMatrix, lamarckIterations)
+      }
     }
 
     population = newPopulation
