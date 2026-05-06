@@ -20,7 +20,7 @@ const emit = defineEmits<{
 }>()
 
 // Selected algorithm
-const selectedAlgoId = ref(algorithms[0]!.id)
+const selectedAlgoId = ref('genetic-algorithm')
 const currentAlgo = computed(() => algorithms.find((a) => a.id === selectedAlgoId.value)!)
 
 // Build default param values reactively when algorithm changes
@@ -199,7 +199,12 @@ watch(
     <div class="section" v-if="currentAlgo.params.length > 0" :class="{ disabled: isRunning }">
       <div class="section-title">Параметры</div>
       <div class="param-list">
-        <div v-for="p in currentAlgo.params" :key="p.key" class="param-row" v-show="isParamVisible(p)">
+        <div
+          v-for="p in currentAlgo.params"
+          :key="p.key"
+          class="param-row"
+          v-show="isParamVisible(p)"
+        >
           <label class="param-label">
             {{ p.label }}
             <span v-if="p.type === 'range'" class="param-value">{{ paramValues[p.key] }}</span>
