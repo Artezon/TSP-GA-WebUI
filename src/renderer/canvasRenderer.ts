@@ -58,6 +58,7 @@ function dpr() {
 export interface DrawOptions {
   showVertexNames?: boolean
   showEdgeWeights?: boolean
+  showOnlySelectedEdges?: boolean
 }
 
 export function draw(
@@ -83,9 +84,9 @@ export function draw(
   ctx.translate(vx * zoom, vy * zoom)
   ctx.scale(zoom, zoom)
 
-  drawEdges(ctx, graph, selection, zoom)
+  drawEdges(ctx, graph, selection, zoom, drawOptions.showOnlySelectedEdges)
   if (drawOptions.showEdgeWeights) {
-    drawEdgeLabels(ctx, graph, selection, zoom)
+    drawEdgeLabels(ctx, graph, selection, zoom, drawOptions.showOnlySelectedEdges)
   }
   drawVertices(ctx, graph, selection, zoom, drawOptions.showVertexNames)
 
@@ -169,6 +170,7 @@ export function drawEdges(
   graph: Graph,
   selection: Selection,
   zoom: number,
+  showOnlySelectedEdges = false,
 ) {
   function _draw(e: Edge, selected: boolean) {
     ctx.beginPath()
@@ -180,10 +182,14 @@ export function drawEdges(
 
   const width = EDGE_WIDTH / zoom
   ctx.lineWidth = width
-  for (const e of graph.edges) {
-    if (selection.edges.has(e)) continue
-    _draw(e, false)
+
+  if (!showOnlySelectedEdges) {
+    for (const e of graph.edges) {
+      if (selection.edges.has(e)) continue
+      _draw(e, false)
+    }
   }
+
   ctx.lineWidth *= 1.5
   for (const e of selection.edges) {
     _draw(e, true)
@@ -195,6 +201,7 @@ export function drawEdgeLabels(
   graph: Graph,
   selection: Selection,
   zoom: number,
+  showOnlySelectedEdges = false,
 ) {
   ctx.save()
   ctx.font = `${EDGE_LABEL_FONT_SIZE / zoom}px ${fontFamily}`
@@ -211,6 +218,7 @@ export function drawEdgeLabels(
     const boxHeight = EDGE_LABEL_FONT_SIZE / zoom + padding * 2
     const cornerRadius = 4 / zoom
     const selected = selection.edges.has(e)
+    if (showOnlySelectedEdges && !selected) continue
     ctx.fillStyle = colors.vertex
     ctx.strokeStyle = selected ? colors.edgeSelected : colors.edge
     ctx.lineWidth = selected ? lineWidth * 1.5 : lineWidth

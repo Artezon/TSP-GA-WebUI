@@ -19,6 +19,7 @@ const graphSize = ref(500)
 
 const showVertexNames = defineModel<boolean>('showVertexNames', { default: true })
 const showEdgeWeights = defineModel<boolean>('showEdgeWeights', { default: true })
+const showOnlySelectedEdges = defineModel<boolean>('showOnlySelectedEdges', { default: false })
 const vertexCountProp = defineModel<number>('vertexCount', { default: 0 })
 const edgeCountProp = defineModel<number>('edgeCount', { default: 0 })
 
@@ -67,6 +68,7 @@ function handleGenerate() {
     <div class="display-toggles">
       <Toggle v-model="showVertexNames">Названия вершин</Toggle>
       <Toggle v-model="showEdgeWeights">Длины рёбер</Toggle>
+      <Toggle v-model="showOnlySelectedEdges">Только выделенные рёбра</Toggle>
     </div>
   </aside>
 

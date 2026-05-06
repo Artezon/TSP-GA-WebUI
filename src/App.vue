@@ -20,6 +20,7 @@ const modalMsg = ref<string | null>(null)
 const loadedVertexDataOverride = ref<SerializableGraph['vertices'] | null>(null)
 const showVertexNames = ref(true)
 const showEdgeWeights = ref(true)
+const showOnlySelectedEdges = ref(false)
 
 const vertexCount = computed(() => currentGraph.value?.vertices?.size ?? 0)
 const edgeCount = computed(() => currentGraph.value?.edges?.size ?? 0)
@@ -164,6 +165,7 @@ onBeforeUnmount(() => {
       @generate="handleGenerate"
       v-model:showVertexNames="showVertexNames"
       v-model:showEdgeWeights="showEdgeWeights"
+      v-model:showOnlySelectedEdges="showOnlySelectedEdges"
       :vertexCount="vertexCount"
       :edgeCount="edgeCount"
     >
@@ -181,6 +183,7 @@ onBeforeUnmount(() => {
         :error="!!errorMsg"
         :showVertexNames="showVertexNames"
         :showEdgeWeights="showEdgeWeights"
+        :showOnlySelectedEdges="showOnlySelectedEdges"
       />
     </main>
 

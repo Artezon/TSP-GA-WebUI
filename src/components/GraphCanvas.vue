@@ -9,6 +9,7 @@ const props = defineProps<{
   error?: boolean
   showVertexNames?: boolean
   showEdgeWeights?: boolean
+  showOnlySelectedEdges?: boolean
 }>()
 
 const canvasEl = ref<HTMLCanvasElement | null>(null)
@@ -23,7 +24,8 @@ function redraw() {
   if (!canvas) return
   draw(canvas, vx.value, vy.value, zoom.value, graph.value, selection, {
     showVertexNames: props.showVertexNames,
-    showEdgeWeights: props.showEdgeWeights !== false,
+    showEdgeWeights: props.showEdgeWeights,
+    showOnlySelectedEdges: props.showOnlySelectedEdges,
   })
 }
 
@@ -56,7 +58,7 @@ watch(
 )
 
 watch(
-  () => [props.showVertexNames, props.showEdgeWeights],
+  () => [props.showVertexNames, props.showEdgeWeights, props.showOnlySelectedEdges],
   () => redraw(),
 )
 
