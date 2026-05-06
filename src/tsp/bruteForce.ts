@@ -55,7 +55,7 @@ export async function runBruteForce(
     history.push(bestLength)
 
     if (animate) {
-      onProgress?.({
+      onProgress({
         bestTour: bestLength < Infinity ? [startName, ...bestTour, startName] : [],
         bestLength,
         history,
@@ -75,7 +75,7 @@ export async function runBruteForce(
     iterations,
   }
 
-  onProgress?.(result)
+  onProgress(result)
 
   return result
 }
