@@ -25,6 +25,16 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       default: 500,
     },
     {
+      key: 'evolutionModel',
+      label: 'Модель эволюции',
+      type: 'select',
+      options: [
+        ['darwin', 'Модель Дарвина'],
+        ['de-vries', 'Модель Де-Фриза (катастроф)'],
+      ],
+      default: 'darwin',
+    },
+    {
       key: 'selectionType',
       label: 'Селекция',
       type: 'select',
@@ -77,7 +87,7 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       key: 'eliteCount',
       label: 'Количество элитных особей',
       type: 'range',
-      min: 1,
+      min: 0,
       max: 10,
       step: 1,
       default: 1,
@@ -90,6 +100,33 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       max: 1000,
       step: 10,
       default: 0,
+    },
+    {
+      key: 'catastropheInterval',
+      label: '[Де-Фриз] Интервал катастрофы (в поколениях)',
+      type: 'number',
+      min: 1,
+      max: 100,
+      step: 1,
+      default: 10,
+    },
+    {
+      key: 'catastropheProbability',
+      label: '[Де-Фриз] Вероятность катастрофы',
+      type: 'number',
+      min: 0,
+      max: 1,
+      step: 0.01,
+      default: 0.5,
+    },
+    {
+      key: 'catastropheDestroyRate',
+      label: '[Де-Фриз] Доля уничтожения популяции',
+      type: 'number',
+      min: 0.1,
+      max: 0.99,
+      step: 0.01,
+      default: 0.8,
     },
   ],
   run: runGeneticAlgorithm,
@@ -224,13 +261,18 @@ export async function runGeneticAlgorithm(
   const distMatrix = buildDistMatrix(graph)
   const populationSize = params.populationSize as number
   const generations = params.generations as number
+  const evolutionModel = params.evolutionModel as string
   const selectionType = params.selectionType as string
   const tournamentSize = params.tournamentSize as number
   const crossoverType = params.crossoverType as string
   const mutationType = params.mutationType as string
   const mutationRate = params.mutationRate as number
   const eliteCount = params.eliteCount as number
-  const stagnationGenerations = (params.stagnationGenerations as number) || 0
+  const stagnationGenerations = params.stagnationGenerations as number
+
+  const catastropheInterval = params.catastropheInterval as number
+  const catastropheProbability = params.catastropheProbability as number
+  const catastropheDestroyRate = params.catastropheDestroyRate as number
 
   if (tournamentSize > populationSize) {
     throw new Error(
@@ -318,6 +360,30 @@ export async function runGeneticAlgorithm(
     const finite = lengths.filter(isFinite)
     const avg = finite.reduce((a, b) => a + b, 0) / finite.length
     averageHistory.push(avg)
+
+    // Catastrophe check
+    if (
+      evolutionModel === 'de-vries' &&
+      gen % catastropheInterval === 0 &&
+      Math.random() < catastropheProbability
+    ) {
+      const numToKeep = Math.max(
+        eliteCount,
+        Math.ceil(populationSize * (1 - catastropheDestroyRate)),
+      )
+
+      const currentElites = bestIndices.slice(0, eliteCount).map((i) => population[i]!)
+      const nonElites = population.filter((_, i) => !currentElites.includes(population[i]!))
+      const shuffledNonElites = nonElites.sort(() => Math.random() - 0.5)
+      const keptNonElites = shuffledNonElites.slice(0, numToKeep - eliteCount)
+      const catastrophizedPopulation: string[][] = [...currentElites, ...keptNonElites]
+      while (catastrophizedPopulation.length < populationSize)
+        catastrophizedPopulation.push(createRandomSparseValidTour(vertices, distMatrix))
+
+      population = catastrophizedPopulation
+      lengths = population.map((t) => tourLength(t, distMatrix))
+      bestIndices = Array.from(lengths.keys()).sort((a, b) => lengths[a]! - lengths[b]!)
+    }
 
     if (stagnationGenerations > 0 && stagnationCount >= stagnationGenerations) {
       break
