@@ -69,7 +69,7 @@ function buildChart(canvas: HTMLCanvasElement) {
   if (props.averageHistory.length > 0 && props.averageHistory.length === props.history.length) {
     datasets.push({
       label: 'Средний маршрут в популяции',
-      data: props.averageHistory,
+      data: props.averageHistory.map((n) => Math.round(n * 100) / 100),
       borderColor: averageColor,
       borderWidth: width,
       backgroundColor: convertHexToRGBA(averageColor, 0.1),
