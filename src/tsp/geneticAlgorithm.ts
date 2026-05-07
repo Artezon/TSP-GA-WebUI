@@ -66,6 +66,15 @@ export const geneticAlgorithmConfig: AlgoConfig = {
       default: 'ox',
     },
     {
+      key: 'crossoverRate',
+      label: 'Вероятность кроссовера',
+      type: 'number',
+      min: 0,
+      max: 1,
+      step: 0.01,
+      default: 0.8,
+    },
+    {
       key: 'mutationType',
       label: 'Мутация',
       type: 'select',
@@ -312,6 +321,7 @@ export async function runGeneticAlgorithm(
   const selectionType = params.selectionType as string
   const tournamentSize = params.tournamentSize as number
   const crossoverType = params.crossoverType as string
+  const crossoverRate = params.crossoverRate as number
   const mutationType = params.mutationType as string
   const mutationRate = params.mutationRate as number
   const eliteCount = params.eliteCount as number
@@ -383,7 +393,12 @@ export async function runGeneticAlgorithm(
       do parent2 = select(population, lengths)
       while (parent2 === parent1)
 
-      let [child1, child2] = crossover(parent1, parent2)
+      let child1: string[], child2: string[]
+      if (Math.random() < crossoverRate) {
+        ;[child1, child2] = crossover(parent1, parent2)
+      } else {
+        ;[child1, child2] = [parent1, parent2]
+      }
       child1 = mutate(child1)
       child2 = mutate(child2)
       newPopulation.push(child1, child2)
