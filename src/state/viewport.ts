@@ -1,8 +1,5 @@
 import { ref } from 'vue'
 
-const ZOOM_IN = 1.1
-const ZOOM_OUT = 1 / ZOOM_IN
-
 export const vx = ref(0)
 export const vy = ref(0)
 export const zoom = ref(0.5)
@@ -12,37 +9,27 @@ export function initializeViewport(width: number, height: number) {
   vy.value = height / 2 / zoom.value
 }
 
-// Convert screen coordinates to world coordinates
-export function toWorld(clientX: number, clientY: number, canvas: HTMLCanvasElement) {
-  const rect = canvas.getBoundingClientRect()
+// Convert canvas coordinates to world coordinates
+export function canvasToWorld(canvasX: number, canvasY: number) {
   return {
-    x: (clientX - rect.left) / zoom.value - vx.value,
-    y: (clientY - rect.top) / zoom.value - vy.value,
+    x: canvasX / zoom.value - vx.value,
+    y: canvasY / zoom.value - vy.value,
   }
 }
 
 // Convert world coordinates to canvas coordinates
-export function toCanvas(worldX: number, worldY: number) {
+export function worldToCanvas(worldX: number, worldY: number) {
   return {
     x: (worldX + vx.value) * zoom.value,
     y: (worldY + vy.value) * zoom.value,
   }
 }
 
-// Zoom in or out toward a specific screen point
-export function applyZoom(
-  clientX: number,
-  clientY: number,
-  canvas: HTMLCanvasElement,
-  scrollDelta: number,
-) {
-  const factor = scrollDelta < 0 ? ZOOM_IN : ZOOM_OUT
-  const rect = canvas.getBoundingClientRect()
-  const cx = clientX - rect.left
-  const cy = clientY - rect.top
-  const wx = cx / zoom.value - vx.value
-  const wy = cy / zoom.value - vy.value
-  zoom.value = Math.max(0.05, Math.min(10, zoom.value * factor))
-  vx.value = cx / zoom.value - wx
-  vy.value = cy / zoom.value - wy
+// Zoom in or out toward an anchor point in canvas coordinates
+export function setZoom(anchorX: number, anchorY: number, targetZoom: number) {
+  const wx = anchorX / zoom.value - vx.value
+  const wy = anchorY / zoom.value - vy.value
+  zoom.value = Math.max(0.05, Math.min(10, targetZoom))
+  vx.value = anchorX / zoom.value - wx
+  vy.value = anchorY / zoom.value - wy
 }

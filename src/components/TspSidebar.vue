@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import type { Graph } from '../state/graph'
-import type { TspResult, ParamValues } from '../tsp/types'
+import type { TspResult, ParamValues, ParamDef } from '../tsp/types'
 import { runAlgorithm } from '../tsp/runner'
 import { algorithms } from '@/tsp/algorithms'
 import TspChart from './TspChart.vue'
@@ -58,7 +58,7 @@ let timerInterval: ReturnType<typeof setInterval> | null = null
 
 const showFullChartModal = ref(false)
 
-function isParamVisible(p: any): boolean {
+function isParamVisible(p: ParamDef): boolean {
   if (!p.showIf) return true
   return paramValues.value[p.showIf.key] === p.showIf.value
 }
@@ -342,6 +342,7 @@ watch(
   position: relative;
   z-index: 10;
   box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  overflow-x: hidden;
   overflow-y: auto;
 }
 
