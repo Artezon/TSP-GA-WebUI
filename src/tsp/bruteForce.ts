@@ -68,14 +68,10 @@ export async function runBruteForce(
     }
   }
 
-  const result: TspResult = {
+  return {
     bestTour: bestLength < Infinity ? [startName, ...bestTour, startName] : [],
     bestLength,
     history,
     iterations,
   }
-
-  onProgress(result)
-
-  return result
 }

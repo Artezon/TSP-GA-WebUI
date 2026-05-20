@@ -383,7 +383,7 @@ export async function runGeneticAlgorithm(
   const averageHistory: number[] = [finite.reduce((sum, b) => sum + b, 0) / finite.length]
 
   let stagnationCount = 0
-  for (let gen = 1; gen <= generations; gen++) {
+  for (let gen = 2; gen <= generations; gen++) {
     const elites = bestIndices.slice(0, eliteCount).map((i) => population[i]!)
     const newPopulation: string[][] = elites
 
@@ -475,14 +475,11 @@ export async function runGeneticAlgorithm(
   }
 
   const closedTour = bestLength < Infinity ? [...bestTour, bestTour[0]!] : []
-  const result: TspResult = {
+  return {
     bestTour: closedTour,
     bestLength,
     history,
     averageHistory,
-    iterations: history.length - 1,
+    iterations: history.length,
   }
-
-  onProgress(result)
-  return result
 }

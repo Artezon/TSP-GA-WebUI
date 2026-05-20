@@ -40,7 +40,6 @@ export function runAlgorithm(
       if (msg.type === 'progress') {
         onProgress?.(msg.result)
       } else if (msg.type === 'done') {
-        onProgress?.(msg.result)
         activeRun = null
         resolve(msg.result)
       } else if (msg.type === 'error') {

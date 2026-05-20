@@ -300,8 +300,8 @@ watch(
       <div class="section-title">График</div>
       <TspChart
         class="mini-chart"
-        :history="history.length > 0 ? history : (result?.history ?? [])"
-        :averageHistory="history.length > 0 ? averageHistory : (result?.averageHistory ?? [])"
+        :history="history"
+        :averageHistory="averageHistory"
         type="mini"
         @click="showFullChartModal = true"
       />
@@ -309,8 +309,8 @@ watch(
       <BaseModal v-model="showFullChartModal" title="График" width="800px">
         <TspChart
           class="full-chart"
-          :history="history.length > 0 ? history : (result?.history ?? [])"
-          :averageHistory="history.length > 0 ? averageHistory : (result?.averageHistory ?? [])"
+          :history="history"
+          :averageHistory="averageHistory"
           type="full"
         />
         <template #footer>

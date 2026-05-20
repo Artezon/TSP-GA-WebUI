@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import {
   Chart,
   LineController,
@@ -42,9 +42,9 @@ const emit = defineEmits<{
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let chart: Chart | null = null
 
-function buildChart(canvas: HTMLCanvasElement) {
-  chart?.destroy()
-  chart = null
+async function buildChart() {
+  clearChart()
+  if (!(canvasRef.value && props.history.length > 0)) return
 
   const labels = props.history.map((_, i) => i + 1)
   const isMini = props.type === 'mini'
@@ -78,7 +78,7 @@ function buildChart(canvas: HTMLCanvasElement) {
     })
   }
 
-  chart = new Chart(canvas, {
+  chart = new Chart(canvasRef.value, {
     type: 'line',
     data: {
       labels,
@@ -88,6 +88,10 @@ function buildChart(canvas: HTMLCanvasElement) {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
+      animations: {
+        numbers: false,
+        colors: false,
+      },
       layout: {
         padding: !isMini ? { top: 3, bottom: 3, left: 3, right: 8 } : 0,
       },
@@ -125,30 +129,44 @@ function buildChart(canvas: HTMLCanvasElement) {
       },
     },
   })
+
+  if (!isMini) {
+    setTimeout(() => {
+      if (chart) {
+        chart.options.animation = undefined
+        chart.update()
+      }
+    }, 1)
+  }
+}
+
+function clearChart(clearCanvas: boolean = false) {
+  chart?.destroy()
+  chart = null
+  if (clearCanvas && canvasRef.value) {
+    const ctx = canvasRef.value.getContext('2d')
+    ctx?.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+  }
+}
+
+async function updateChart() {
+  if (chart) {
+    chart.data.labels = props.history.map((_, i) => i + 1)
+    chart.data.datasets[0]!.data = props.history
+    if (props.averageHistory.length === props.history.length) {
+      chart.data.datasets[1]!.data = props.averageHistory.map((n) => Math.round(n * 100) / 100)
+    }
+    chart.update()
+  } else {
+    buildChart()
+  }
 }
 
 onMounted(() => {
-  if (canvasRef.value && props.history.length > 0) {
-    buildChart(canvasRef.value)
-  }
+  buildChart()
 })
 
-watch(
-  () => props.history,
-  async () => {
-    await nextTick()
-    if (canvasRef.value && props.history.length > 0) {
-      buildChart(canvasRef.value)
-    } else {
-      chart?.destroy()
-      chart = null
-      if (canvasRef.value) {
-        const ctx = canvasRef.value.getContext('2d')
-        ctx?.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
-      }
-    }
-  },
-)
+watch(() => props.history, updateChart)
 
 onMounted(() => {
   const style = getComputedStyle(document.documentElement)
@@ -156,7 +174,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
-  chart?.destroy()
+  setTimeout(clearChart, 250)
 })
 </script>
 
